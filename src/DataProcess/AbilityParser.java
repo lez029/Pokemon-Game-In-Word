@@ -44,8 +44,7 @@ public class AbilityParser {
                 id);
     }
 
-    private static String[] effectParser(JSONObject root)
-            throws IOException, InterruptedException {
+    private static String[] effectParser(JSONObject root) {
         String[] stringsEffect = new String[2];
         JSONArray effectArr = root.getJSONArray("effect_entries");
         for(int i = 0; i < effectArr.length(); i++) {
@@ -61,8 +60,7 @@ public class AbilityParser {
         return stringsEffect;
     }
 
-    private static String descriptionParser(JSONObject root)
-        throws IOException, InterruptedException {
+    private static String descriptionParser(JSONObject root) {
         JSONArray flavorTextArr = root.getJSONArray("flavor_text_entries");
         for(int i = 0; i < flavorTextArr.length(); i++) {
             JSONObject flavorTextObj = flavorTextArr.getJSONObject(i);
@@ -76,8 +74,7 @@ public class AbilityParser {
         return "";
     }
 
-    private static int idParser(JSONObject root)
-        throws IOException, InterruptedException {
+    private static int idParser(JSONObject root) {
         return root.getInt("id");
     }
 
@@ -85,7 +82,7 @@ public class AbilityParser {
             throws IOException, InterruptedException {
         ArrayList<Ability> list = abilitiesParser(
                 APILoader.loadAPI(
-                        "https://pokeapi.co/api/v2/pokemon/24"));
+                        "https://pokeapi.co/api/v2/pokemon/1"));
         for (Ability a : list)
             System.out.print(a.name + "\n");
     }

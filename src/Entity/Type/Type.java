@@ -1,27 +1,31 @@
 package Entity.Type;
 
 
+import DataProcess.APILoader;
+import DataProcess.TypeParser;
+
 import java.io.IOException;
+import java.util.ArrayList;
 
 public enum Type {
-    Normal,
-    Fighting,
-    Flying,
-    Poison,
-    Ground,
-    Rock,
-    Bug,
-    Ghost,
-    Steel,
-    Fire,
-    Water,
-    Grass,
-    Electric,
-    Psychic,
-    Ice,
-    Dragon,
-    Dark,
-    Fairy;
+    NORMAL,
+    FIGHTING,
+    FLYING,
+    POISON,
+    GROUND,
+    ROCK,
+    BUG,
+    GHOST,
+    STEEL,
+    FIRE,
+    WATER,
+    GRASS,
+    ELECTRIC,
+    PSYCHIC,
+    ICE,
+    DRAGON,
+    DARK,
+    FAIRY;
 
     private static final double[][] TYPE_CHART;
 
@@ -45,5 +49,16 @@ public enum Type {
 
     public boolean getSameTypeBonus(Type pokeType) {
             return this == pokeType;
+    }
+
+    // Test TypeParser class, TypeChartLoader class, Type enum,
+    // and all its methods.
+    public static void main(String[] args)
+            throws IOException, InterruptedException {
+        ArrayList<Type> typeList = TypeParser.typesParser(APILoader.loadAPI
+                ("https://pokeapi.co/api/v2/pokemon/1"));
+        System.out.print(Type.WATER.getEffectiveness(typeList.get(0)) + "\n");
+        System.out.println(Type.WATER.getEffectiveness(typeList.get(0), typeList.get(1)));
+        System.out.println(Type.POISON.getSameTypeBonus(typeList.get(1)));
     }
 }

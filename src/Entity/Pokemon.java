@@ -25,7 +25,7 @@ public class Pokemon implements Cloneable{
     private int level;
     private int expNow;
     private int expNeed;
-    private final Nature nature;
+    private Nature nature;
     private OwnerType ownerType = OwnerType.WILD;
     private int[] ev = new int[6];
     private int[] iv = new int[6];

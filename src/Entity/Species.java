@@ -23,6 +23,7 @@ public class Species {
     public final int baseEXP;
     public final EXPGroup expGroup;
     public final ArrayList<Ability> abilityList;
+    public final ArrayList<Item> itemList;
     public final double maleRatio;
     public final boolean isGenderless;
 
@@ -42,7 +43,8 @@ public class Species {
                       EXPGroup expGroup,
                       ArrayList<Ability> abilityList,
                       double maleRatio,
-                      boolean isGenderless) {
+                      boolean isGenderless,
+                      ArrayList<Item> itemList) {
 
         this.type1 = type1;
         this.type2 = type2;
@@ -61,6 +63,7 @@ public class Species {
         this.abilityList = abilityList;
         this.maleRatio = maleRatio;
         this.isGenderless = isGenderless;
+        this.itemList = itemList;
     }
 
     public int getBaseTotal() {
