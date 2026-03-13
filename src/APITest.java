@@ -17,7 +17,6 @@ public class APITest {
         HttpResponse<String> response =
                 client.send(request, HttpResponse.BodyHandlers.ofString());
         JSONObject root = new JSONObject(response.body());
-        System.out.print(root.toString());
         /**
         for (int i = 0; i < moves.length(); i++) {
             // Get this move

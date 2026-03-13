@@ -10,6 +10,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 
 public class SpeciesParser {
+    /**
     public static Species speciesParser(HttpResponse<String> httpResponse) {
         JSONObject root = new JSONObject(httpResponse.body());
 
@@ -25,4 +26,5 @@ public class SpeciesParser {
     public static Type typeParser() {
 
     }
+     */
 }

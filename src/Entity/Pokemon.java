@@ -25,7 +25,7 @@ public class Pokemon implements Cloneable{
     private int level;
     private int expNow;
     private int expNeed;
-    private Nature nature;
+    private final Nature nature;
     private OwnerType ownerType = OwnerType.WILD;
     private int[] ev = new int[6];
     private int[] iv = new int[6];
@@ -48,24 +48,24 @@ public class Pokemon implements Cloneable{
 
     protected Pokemon(Species species, int level) {
         this.species = species;
-        this.nickname = species.getSpeciesName();
+        this.nickname = species.speciesName;
         initRandomAttributes();
         this.level = level;
         this.ev = new int[]{0, 0, 0, 0, 0, 0};
         setAllStats();
         //Add Gender Random
-        generateAbility(species.getAbilityList());
+        generateAbility(species.abilityList);
     }
 
     protected Pokemon(Species species, int level, Player owner) {
         this.species = species;
-        this.nickname = species.getSpeciesName();
+        this.nickname = species.speciesName;
         this.owner = owner;
         initRandomAttributes();
         this.level = level;
         this.ev = new int[]{0, 0, 0, 0, 0, 0};
         setAllStats();
-        generateAbility(species.getAbilityList());
+        generateAbility(species.abilityList);
         if (owner instanceof RealPlayer) {
             ownerType = OwnerType.PLAYER;
             this.expNow = 0;
@@ -138,7 +138,7 @@ public class Pokemon implements Cloneable{
     }
 
     public int calculateMaxHP() {
-        return (2 * species.getBaseHP()
+        return (2 * species.baseHP
                 + iv[INDEX_HP]
                 + ev[INDEX_HP] / 4)
                 * level / 100 + level + 10;
@@ -154,16 +154,16 @@ public class Pokemon implements Cloneable{
     public void setAllStats() {
         int oldMaxHP = maxHP;
         maxHP = calculateMaxHP();
-        attack = calculateOtherStats(INDEX_ATTACK, species.getBaseAttack());
-        defense = calculateOtherStats(INDEX_DEFENSE, species.getBaseDefense());
-        SA = calculateOtherStats(INDEX_SA, species.getBaseSA());
-        SD = calculateOtherStats(INDEX_SD, species.getBaseSD());
-        speed = calculateOtherStats(INDEX_SPEED, species.getBaseSpeed());
+        attack = calculateOtherStats(INDEX_ATTACK, species.baseAttack);
+        defense = calculateOtherStats(INDEX_DEFENSE, species.baseDefense);
+        SA = calculateOtherStats(INDEX_SA, species.baseSA);
+        SD = calculateOtherStats(INDEX_SD, species.baseSD);
+        speed = calculateOtherStats(INDEX_SPEED, species.baseSpeed);
         currentHP += maxHP - oldMaxHP;
     }
 
     public void setEXPNeed() {
-        expNeed = species.getExpGroup().calculateEXPNeed(level);
+        expNeed = species.expGroup.calculateEXPNeed(level);
     }
 
     public void addEXP(int expGet) {
