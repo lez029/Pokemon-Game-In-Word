@@ -5,5 +5,5 @@ public enum MoveTag {
     SOUND,
     EXPLODE,
     CONTACT,
-    
+
 }

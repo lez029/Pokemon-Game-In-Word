@@ -1,15 +1,21 @@
 package Entity.Move;
 
 
+import Data.MoveData;
+import Entity.Pokemon;
+import Entity.Status.Status;
 import Entity.Type.Type;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
+
 public class Move {
-    public final String name;
-    public final Type type;
-    // accuracy -> int%
-    public final int accuracy;
-    public final DamageClass damage_class;
-    public final int power;
+    public final MoveData data;
+    protected final EnumSet<MoveTag> tags = EnumSet.noneOf(MoveTag.class);
+
+    public Move(MoveData data) {
+        this.data = data;
+    }
 
     public Move clone() {
         try {

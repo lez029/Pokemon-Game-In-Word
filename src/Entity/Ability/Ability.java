@@ -2,38 +2,20 @@ package Entity.Ability;
 
 import BattleEngine.Field;
 import BattleEngine.Weather;
+import Data.AbilityData.AbilityData;
 import Entity.Move.Move;
 import Entity.Pokemon;
 
 public class Ability implements Cloneable{
-    public final String name;
-    public final String shortEffect;
-    public final String description;
-    public final String effect;
-    public final boolean isHidden;
-    public final int slot;
-    public final int id;
+    public final AbilityData data;
 
-    public Ability(String name,
-                   String shortEffect,
-                   String description,
-                   String effect,
-                   boolean isHidden,
-                   int slot,
-                   int id) {
-        this.name = name;
-        this.shortEffect = shortEffect;
-        this.description = description;
-        this.effect = effect;
-        this.isHidden = isHidden;
-        this.slot = slot;
-        this.id = id;
+    public Ability(AbilityData data) {
+        this.data = data;
     }
 
     @Override
     public Ability clone() throws CloneNotSupportedException {
-        return new Ability(name, shortEffect, description, effect,
-                isHidden, slot, id);
+        return new Ability(data);
     }
 
     // In Battle

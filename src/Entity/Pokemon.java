@@ -1,5 +1,6 @@
 package Entity;
 
+import Data.SpeciesData;
 import Entity.Ability.Ability;
 import Entity.Gender.Gender;
 import Entity.Move.Move;
@@ -7,13 +8,12 @@ import Entity.Status.Status;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 public class Pokemon implements Cloneable{
     //Global Variables
-    private final Species species;
+    public SpeciesData data;
     private String nickname;
     private int maxHP;
     private int currentHP;
@@ -46,26 +46,26 @@ public class Pokemon implements Cloneable{
     private static final int INDEX_SD = 4;
     private static final int INDEX_SPEED = 5;
 
-    protected Pokemon(Species species, int level) {
-        this.species = species;
-        this.nickname = species.speciesName;
+    public Pokemon(SpeciesData data, int level) {
+        this.data = data;
+        this.nickname = data.speciesName();
         initRandomAttributes();
         this.level = level;
         this.ev = new int[]{0, 0, 0, 0, 0, 0};
         setAllStats();
         //Add Gender Random
-        generateAbility(species.abilityList);
+        generateAbility(data.abilityList());
     }
 
-    protected Pokemon(Species species, int level, Player owner) {
-        this.species = species;
-        this.nickname = species.speciesName;
+    public Pokemon(SpeciesData data, int level, Player owner) {
+        this.data = data;
+        this.nickname = data.speciesName();
         this.owner = owner;
         initRandomAttributes();
         this.level = level;
         this.ev = new int[]{0, 0, 0, 0, 0, 0};
         setAllStats();
-        generateAbility(species.abilityList);
+        generateAbility(data.abilityList());
         if (owner instanceof RealPlayer) {
             ownerType = OwnerType.PLAYER;
             this.expNow = 0;
@@ -81,29 +81,7 @@ public class Pokemon implements Cloneable{
         Pokemon copy = pokemon.clone();
         copy.owner = owner;
         copy.ownerType = OwnerType.PLAYER;
-        this.species = copy.species;
-        this.nickname = copy.nickname;
-        this.ownerType = copy.ownerType;
-        this.level = copy.level;
-        this.owner = copy.owner;
-        this.nature = copy.nature;
-        this.ev = copy.ev;
-        this.iv = copy.iv;
-        this.itemNow = copy.itemNow;
-        this.moveListNow = copy.moveListNow;
-        this.moveListAvailable = copy.moveListAvailable;
-        this.status = copy.status;
-        this.gender = copy.gender;
-        this.expNow = copy.expNow;
-        this.expNeed = copy.expNeed;
-        this.maxHP = copy.maxHP;
-        this.currentHP = copy.currentHP;
-        this.attack = copy.attack;
-        this.defense = copy.defense;
-        this.SA = copy.SA;
-        this.SD = copy.SD;
-        this.speed = copy.speed;
-        this.ability = copy.ability;
+        copyFrom(copy);
     }
 
     @Override
@@ -118,7 +96,7 @@ public class Pokemon implements Cloneable{
             copy.moveListAvailable = this.moveListAvailable.stream()
                     .map(Move::clone)
                     .collect(Collectors.toCollection(ArrayList::new));
-            copy.status = this.status != null ? this.status.clone() : null;
+            copy.status = this.status;
             copy.itemNow = this.itemNow != null ? this.itemNow.clone() : null;
             copy.gender = this.gender != null ? this.gender.clone() : null;
             copy.ability = this.ability != null ? this.ability.clone() : null;
@@ -126,6 +104,32 @@ public class Pokemon implements Cloneable{
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException("Clone not supported", e);
         }
+    }
+
+    private void copyFrom(Pokemon other) {
+        this.data = other.data;
+        this.nickname = other.nickname;
+        this.ownerType = other.ownerType;
+        this.level = other.level;
+        this.owner = other.owner;
+        this.nature = other.nature;
+        this.ev = other.ev;
+        this.iv = other.iv;
+        this.itemNow = other.itemNow;
+        this.moveListNow = other.moveListNow;
+        this.moveListAvailable = other.moveListAvailable;
+        this.status = other.status;
+        this.gender = other.gender;
+        this.expNow = other.expNow;
+        this.expNeed = other.expNeed;
+        this.maxHP = other.maxHP;
+        this.currentHP = other.currentHP;
+        this.attack = other.attack;
+        this.defense = other.defense;
+        this.SA = other.SA;
+        this.SD = other.SD;
+        this.speed = other.speed;
+        this.ability = other.ability;
     }
 
     private void initRandomAttributes() {
@@ -138,7 +142,7 @@ public class Pokemon implements Cloneable{
     }
 
     public int calculateMaxHP() {
-        return (2 * species.baseHP
+        return (2 * data.baseHP()
                 + iv[INDEX_HP]
                 + ev[INDEX_HP] / 4)
                 * level / 100 + level + 10;
@@ -154,16 +158,16 @@ public class Pokemon implements Cloneable{
     public void setAllStats() {
         int oldMaxHP = maxHP;
         maxHP = calculateMaxHP();
-        attack = calculateOtherStats(INDEX_ATTACK, species.baseAttack);
-        defense = calculateOtherStats(INDEX_DEFENSE, species.baseDefense);
-        SA = calculateOtherStats(INDEX_SA, species.baseSA);
-        SD = calculateOtherStats(INDEX_SD, species.baseSD);
-        speed = calculateOtherStats(INDEX_SPEED, species.baseSpeed);
+        attack = calculateOtherStats(INDEX_ATTACK, data.baseAttack());
+        defense = calculateOtherStats(INDEX_DEFENSE, data.baseDefense());
+        SA = calculateOtherStats(INDEX_SA, data.baseSA());
+        SD = calculateOtherStats(INDEX_SD, data.baseSD());
+        speed = calculateOtherStats(INDEX_SPEED, data.baseSpeed());
         currentHP += maxHP - oldMaxHP;
     }
 
     public void setEXPNeed() {
-        expNeed = species.expGroup.calculateEXPNeed(level);
+        expNeed = data.expGroup().calculateEXPNeed(level);
     }
 
     public void addEXP(int expGet) {
