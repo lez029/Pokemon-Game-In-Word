@@ -23,6 +23,8 @@ public record SpeciesData(int id,
                           EXPGroup expGroup,
                           ArrayList<Ability> abilityList,
                           ArrayList<Item> itemList,
-                          double maleRatio,
-                          boolean isGenderless) {
+                          GenderData genderData,
+                          int baseFriendness,
+                          boolean canEvolve,
+                          SpeciesData evolveToData) {
 }

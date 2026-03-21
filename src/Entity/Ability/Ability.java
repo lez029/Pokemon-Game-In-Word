@@ -18,6 +18,10 @@ public class Ability implements Cloneable{
         return new Ability(data);
     }
 
+    public AbilityData getAbilityData() {
+        return data;
+    }
+
     // In Battle
     // Switch In
     public void onSwitchIn(Pokemon user,

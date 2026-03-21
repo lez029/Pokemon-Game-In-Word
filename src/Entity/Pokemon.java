@@ -2,7 +2,6 @@ package Entity;
 
 import Data.SpeciesData;
 import Entity.Ability.Ability;
-import Entity.Gender.Gender;
 import Entity.Move.Move;
 import Entity.Status.Status;
 
@@ -53,11 +52,9 @@ public class Pokemon implements Cloneable{
      * Status now of the Pokemon
      */
     private Status status;
-    // TODO: implement Gender class and finalize gender variable
-    private Gender gender;
     private Ability ability;
     private Player owner;
-    // TODO: Add int friendness data field
+    private int friendness;
     // As some Pokemons may evolve based on their friendness
 
     // Constants
@@ -90,6 +87,7 @@ public class Pokemon implements Cloneable{
     public Pokemon(SpeciesData data, int level) {
         this.data = data;
         this.nickname = data.speciesName();
+        this.friendness = data.baseFriendness();
         initRandomAttributes();
         this.level = level;
         this.ev = new int[]{0, 0, 0, 0, 0, 0};
@@ -111,6 +109,7 @@ public class Pokemon implements Cloneable{
     public Pokemon(SpeciesData data, int level, Player owner) {
         this.data = data;
         this.nickname = data.speciesName();
+        this.friendness = data.baseFriendness();
         this.owner = owner;
         initRandomAttributes();
         this.level = level;
@@ -136,6 +135,7 @@ public class Pokemon implements Cloneable{
      */
     public Pokemon(Pokemon pokemon, Player owner) {
         Pokemon copy = pokemon.clone();
+        this.friendness = copy.data.baseFriendness();
         copy.owner = owner;
         copy.ownerType = OwnerType.PLAYER;
         copyFrom(copy);
@@ -161,7 +161,6 @@ public class Pokemon implements Cloneable{
                     .collect(Collectors.toCollection(ArrayList::new));
             copy.status = this.status;
             copy.itemNow = this.itemNow != null ? this.itemNow.clone() : null;
-            copy.gender = this.gender != null ? this.gender.clone() : null;
             copy.ability = this.ability != null ? this.ability.clone() : null;
             return copy;
         } catch (CloneNotSupportedException e) {
@@ -189,7 +188,6 @@ public class Pokemon implements Cloneable{
         this.moveListNow = other.moveListNow;
         this.moveListAvailable = other.moveListAvailable;
         this.status = other.status;
-        this.gender = other.gender;
         this.expNow = other.expNow;
         this.expNeed = other.expNeed;
         this.maxHP = other.maxHP;
@@ -258,7 +256,7 @@ public class Pokemon implements Cloneable{
     }
 
     /**
-     * 
+     *
      */
     public void setAllStats() {
         int oldMaxHP = maxHP;
@@ -285,6 +283,9 @@ public class Pokemon implements Cloneable{
         while (expNow >= expNeed && level < 100) {
             expNow -= expNeed;
             level++;
+            if (data.canEvolve()) {
+                evolve();
+            }
             setEXPNeed();
             setAllStats();
         }
@@ -323,5 +324,19 @@ public class Pokemon implements Cloneable{
     }
 
     // TODO: Implement evolve() method
+    private void evolve() {
+        this.data = data.evolveToData();
+        int slot1 = this.ability.getAbilityData()
+                .pokemonMap()
+                .get(data.speciesName()).slot();
+        for (int i = 0; i < data.evolveToData().abilityList().size(); i++) {
+            int slot2 = this.data
+                    .evolveToData()
+                    .abilityList()
+                    .get(i)
+                    .getAbilityData()
+                    .getSlot(data.evolveToData().speciesName());
+        }
+    }
     // TODO: Add public final boolean isEvolve data field to SpeciesData class
 }
