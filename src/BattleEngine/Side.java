@@ -7,18 +7,26 @@ import Entity.Pokemon;
 import java.util.*;
 
 public class Side {
-    private List<Pokemon> activePokemons;
+    private Player player;
+    private Pokemon activePokemon;
+    private List<Pokemon> team;
     private boolean canEsacpe = true;
     private boolean doEscaped = false;
     public final int randomTier;
 
-    public Side (List<Pokemon> pokemons) {
-        activePokemons = new ArrayList<>(pokemons);
+    public Side (Player player) {
+        this.player = player;
+        activePokemon = player.getActivePokemon();
+        team = player.getTeam();
         randomTier = new Random().nextInt(500);
     }
 
-    public List<Pokemon> getActivePokemons(){
-        return new ArrayList<>(activePokemons);
+    public Pokemon getActivePokemon() {
+        return activePokemon;
+    }
+
+    public List<Pokemon> getTeam(){
+        return new ArrayList<>(team);
     }
 
     public boolean escape() {
@@ -36,9 +44,9 @@ public class Side {
         return doEscaped;
     }
 
-    public boolean areAllFainted() {
+    public boolean areAllTeamsFainted() {
         Set<Player> playersChecked = new HashSet<>();
-        for (Pokemon pokemon : activePokemons) {
+        for (Pokemon pokemon : team) {
             if (!pokemon.isFainted())
                 return false;
             playersChecked.add(pokemon.getOwner());

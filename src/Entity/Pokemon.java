@@ -7,7 +7,6 @@ import Entity.Move.Move;
 import Entity.Status.Status;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Represents a Pokemon instance in the game

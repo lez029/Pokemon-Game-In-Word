@@ -1,5 +1,7 @@
 package BattleEngine;
 
+import Entity.Pokemon;
+
 public class Battle {
     private final Side playerSide;
     private final Side opponentSide;
@@ -42,6 +44,6 @@ public class Battle {
     }
 
     private boolean isSideFainted(Side side) {
-        return side.doEscaped() || side.areAllFainted();
+        return side.doEscaped() || side.areAllTeamsFainted();
     }
 }

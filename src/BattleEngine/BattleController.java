@@ -57,21 +57,51 @@ public class BattleController {
     }
 
     public void run() {
-        List<Pokemon> listPlayerSide = battle.getPlayerSide().getActivePokemons();
-        for (Pokemon pokemon : listPlayerSide) {
-            Action action = pokemon.getOwner().chooseAction(choiceMap, battle);
-            actionQueue.add(action);
-        }
+        Pokemon playerPokemon = battle.getPlayerSide().getActivePokemon();
+        Pokemon opponentPokemon = battle.getOpponentSide().getActivePokemon();
+
+        // Both sides choose their actions first
+        actionQueue.add(
+                playerPokemon.getOwner().chooseAction(choiceMap, battle)
+        );
+        actionQueue.add(
+                opponentPokemon.getOwner().chooseAction(choiceMap, battle)
+        );
 
         while (!actionQueue.isEmpty()) {
-            actionQueue.poll().act();
-            // TODO: Renew listPlayerSide after each action,
-            // if isFainted, force the owner to switch;
+            Action action = actionQueue.poll();
+
+            // Skip the action if the Pokemon has already fainted
+            if (action.getActPokemon().isFainted()) {
+                continue;
+            }
+
+            action.act();
+
+            // Check whether the battle has ended
             if (battle.isEnd()) {
                 endBattle();
                 return;
             }
+
+            // Renew active Pokemon after the action
+            playerPokemon = battle.getPlayerSide().getActivePokemon();
+            opponentPokemon = battle.getOpponentSide().getActivePokemon();
+
+            // Force switch if necessary
+            if (playerPokemon.isFainted()) {
+                actionQueue.add(
+                        playerPokemon.getOwner().chooseSwitch(battle)
+                );
+            }
+
+            if (opponentPokemon.isFainted()) {
+                actionQueue.add(
+                        opponentPokemon.getOwner().chooseSwitch(battle)
+                );
+            }
         }
+
         turn++;
         run();
     }
