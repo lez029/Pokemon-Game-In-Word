@@ -4,6 +4,7 @@ import Data.SpeciesData;
 import Data.StatChange;
 import Entity.Ability.Ability;
 import Entity.Move.Move;
+import Entity.Move.Stat;
 import Entity.Status.Status;
 
 import java.util.*;
@@ -58,7 +59,7 @@ public class Pokemon implements Cloneable{
     private Ability ability;
     private int slot;
     // TODO: Refactor statChanges
-    private Map<String, StatChange> statChanges;
+    private Map<String, StatChange> statChanges = new HashMap<>();
 
     // Constants
     private static final Random random = new Random();
@@ -155,8 +156,18 @@ public class Pokemon implements Cloneable{
             Pokemon copy = (Pokemon) super.clone();
             copy.ev = Arrays.copyOf(this.ev, this.ev.length);
             copy.iv = Arrays.copyOf(this.iv, this.iv.length);
-            copy.moveMapNow = this.moveMapNow;
-            copy.moveListAvailable = this.moveListAvailable;
+            Map<Move, Move> moves = new IdentityHashMap<>();
+            copy.moveMapNow = new HashMap<>();
+            this.moveMapNow.forEach((key, move) ->
+                    copy.moveMapNow.put(key, moves.computeIfAbsent(move, Move::clone)));
+            copy.moveListAvailable = new HashSet<>();
+            this.moveListAvailable.forEach(move ->
+                    copy.moveListAvailable.add(moves.computeIfAbsent(move, Move::clone)));
+            if (moveListLearn != null) {
+                copy.moveListLearn = new ArrayList<>();
+                moveListLearn.forEach(move -> copy.moveListLearn.add(moves.computeIfAbsent(move, Move::clone)));
+            }
+            copy.statChanges = new HashMap<>(statChanges);
             copy.status = this.status;
             copy.itemNow = this.itemNow != null ? this.itemNow.clone() : null;
             copy.ability = this.ability != null ? this.ability.clone() : null;
@@ -196,6 +207,11 @@ public class Pokemon implements Cloneable{
         this.SD = other.SD;
         this.speed = other.speed;
         this.ability = other.ability;
+        this.statChanges = other.statChanges;
+        this.moveListLearn = other.moveListLearn;
+        this.friendness = other.friendness;
+        this.lastProcessedLevel = other.lastProcessedLevel;
+        this.slot = other.slot;
     }
 
 
@@ -267,6 +283,38 @@ public class Pokemon implements Cloneable{
     public int getLevel(){return level;}
     public int getSpeed(){return speed;}
     public Map<String, StatChange> getStatChanges(){return statChanges;}
+    private static String statKey(Stat stat) {
+        if (stat == Stat.ACCURACY) return "HIT_RATE";
+        if (stat == Stat.EVASION) return "EVASION_RATE";
+        return stat.name();
+    }
+
+    public int getStatStage(Stat stat) {
+        StatChange change = statChanges.get(statKey(stat));
+        return change == null ? 0 : Math.max(-6, Math.min(6, change.modifier()));
+    }
+
+    public void changeStatStage(Stat stat, int amount) {
+        Objects.requireNonNull(stat, "stat");
+        if (stat == Stat.HP || stat == Stat.SPECIAL) return;
+        int stage = (int)Math.max(-6L, Math.min(6L, (long)getStatStage(stat) + amount));
+        statChanges.put(statKey(stat), new StatChange(stat, stage));
+    }
+
+    public void resetStatStages() { statChanges.clear(); }
+
+    public int getBattleStat(Stat stat) {
+        int base = switch (stat) {
+            case ATTACK -> attack;
+            case DEFENSE -> defense;
+            case SPECIAL_ATTACK -> SA;
+            case SPECIAL_DEFENSE -> SD;
+            case SPEED -> speed;
+            default -> throw new IllegalArgumentException("Not a combat stat: " + stat);
+        };
+        int stage = getStatStage(stat);
+        return Math.max(1, (int)(base * (stage >= 0 ? (2.0 + stage) / 2.0 : 2.0 / (2.0 - stage))));
+    }
     public Player getOwner() {
         return owner;
     }
@@ -357,11 +405,12 @@ public class Pokemon implements Cloneable{
      * otherwise, -1 if missed;
      */
     public int attack(Pokemon target, Move move) {
-        return 0;
+        return Objects.requireNonNull(move, "move").use(this, target);
     }
 
     // TODO: Implement the takeDamage logic in battle system
     public void takeDamage(int damage) {
+        if (damage < 0) throw new IllegalArgumentException("Damage cannot be negative");
         currentHP -= Math.min(damage, currentHP);
         if (isFainted()) {
 

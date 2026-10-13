@@ -19,6 +19,8 @@ public class UseMove extends Action{
 
     @Override
     public void act() {
-        actMove.applyMove(targetPokemon);
+        Pokemon target = targetPokemon.getOwner() == null
+                ? targetPokemon : targetPokemon.getOwner().getActivePokemon();
+        actPokemon.attack(target, actMove);
     }
 }

@@ -6,6 +6,6 @@ public class RealPlayer extends Player{
     }
     @Override
     public  void addPokemon(Pokemon pokemon){
-        return;
+        super.addPokemon(pokemon);
     }
 }

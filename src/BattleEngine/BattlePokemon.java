@@ -32,7 +32,7 @@ public class BattlePokemon {
     }
 
     public boolean isFainted() {
-        return isFainted;
+        return pokemon.isFainted();
     }
 
     public void takeDamage(int damage) {

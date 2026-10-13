@@ -18,8 +18,6 @@ public class Switch extends Action {
     @Override
     public void act () {
         actPlayer.switchPokemon(switchID);
-        actSide.getTeam().remove(actPokemon);
-        actSide.getTeam().add(actPlayer.getActivePokemon());
     }
 
 }

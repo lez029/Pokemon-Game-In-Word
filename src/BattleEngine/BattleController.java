@@ -1,15 +1,12 @@
 package BattleEngine;
 
 import BattleEngine.Action.*;
-import Entity.Move.Move;
+import Entity.Move.Stat;
 import Entity.Pokemon;
 
 import java.util.*;
 
 public class BattleController {
-    private static final String INDEX_HIT_RATE = "HIT_RATE";
-    private static final String INDEX_EVASION_RATE = "EVASION_RATE";
-    private static final Random RANDOM = new Random(561234557L);
     public static final int CHOICE_USE_MOVE = 1;
     public static final int CHOICE_USE_ITEM = 2;
     public static final int CHOICE_SWITCH = 3;
@@ -34,19 +31,19 @@ public class BattleController {
                 int priority1 = action1.getPriority();
                 int priority2 = action2.getPriority();
                 if (priority1 == priority2) {
-                    int speed1 = action1.getActPokemon().getSpeed();
-                    int speed2 = action2.getActPokemon().getSpeed();
+                    int speed1 = action1.getActPokemon().getBattleStat(Stat.SPEED);
+                    int speed2 = action2.getActPokemon().getBattleStat(Stat.SPEED);
                     if (speed1 == speed2){
                         int randomTier1 = action1.getRandomTier();
                         int randomTier2 = action2.getRandomTier();
                         if (randomTier1 == randomTier2) {
                             return 0;
                         }
-                        return randomTier2 - randomTier1;
+                        return Integer.compare(randomTier2, randomTier1);
                     }
-                    return speed2 - speed1;
+                    return Integer.compare(speed2, speed1);
                 }
-                return priority2 - priority1;
+                return Integer.compare(priority2, priority1);
             }
         }
         );
@@ -57,71 +54,60 @@ public class BattleController {
     }
 
     public void run() {
-        Pokemon playerPokemon = battle.getPlayerSide().getActivePokemon();
-        Pokemon opponentPokemon = battle.getOpponentSide().getActivePokemon();
+        while (!battle.isEnd()) {
+            forceSwitch(battle.getPlayerSide());
+            forceSwitch(battle.getOpponentSide());
+            Pokemon playerPokemon = battle.getPlayerSide().getActivePokemon();
+            Pokemon opponentPokemon = battle.getOpponentSide().getActivePokemon();
 
-        // Both sides choose their actions first
-        actionQueue.add(
-                playerPokemon.getOwner().chooseAction(choiceMap, battle)
-        );
-        actionQueue.add(
-                opponentPokemon.getOwner().chooseAction(choiceMap, battle)
-        );
+            // Both sides choose their actions first
+            actionQueue.add(
+                    playerPokemon.getOwner().chooseAction(choiceMap, battle)
+            );
+            actionQueue.add(
+                    opponentPokemon.getOwner().chooseAction(choiceMap, battle)
+            );
 
-        while (!actionQueue.isEmpty()) {
-            Action action = actionQueue.poll();
+            while (!actionQueue.isEmpty()) {
+                Action action = actionQueue.poll();
 
-            // Skip the action if the Pokemon has already fainted
-            if (action.getActPokemon().isFainted()) {
-                continue;
+                // Skip the action if the Pokemon has already fainted
+                if (action.getActPokemon().isFainted()
+                        || action.getActPokemon() != action.getActSide().getActivePokemon()) {
+                    continue;
+                }
+
+                action.act();
+
+                // Check whether the battle has ended
+                if (battle.isEnd()) {
+                    actionQueue.clear();
+                    endBattle();
+                    return;
+                }
             }
 
-            action.act();
-
-            // Check whether the battle has ended
-            if (battle.isEnd()) {
-                endBattle();
-                return;
-            }
-
-            // Renew active Pokemon after the action
-            playerPokemon = battle.getPlayerSide().getActivePokemon();
-            opponentPokemon = battle.getOpponentSide().getActivePokemon();
-
-            // Force switch if necessary
-            if (playerPokemon.isFainted()) {
-                actionQueue.add(
-                        playerPokemon.getOwner().chooseSwitch(battle)
-                );
-            }
-
-            if (opponentPokemon.isFainted()) {
-                actionQueue.add(
-                        opponentPokemon.getOwner().chooseSwitch(battle)
-                );
-            }
+            turn++;
         }
-
-        turn++;
-        run();
+        endBattle();
     }
 
-    private static boolean isHit(Pokemon actor, Move move, Pokemon target) {
-        if (move.data.accuracy() == null)
-            return true;
-        int modifierPokemon = actor.getStatChanges().get(INDEX_HIT_RATE).modifier()
-                - target.getStatChanges().get(INDEX_EVASION_RATE).modifier();
-        modifierPokemon = Math.max(-6, Math.min(6, modifierPokemon));
-        double modifier;
-        if (modifierPokemon < 0) {
-            modifier = 3.0 / (3 - modifierPokemon);
+    private void forceSwitch(Side side) {
+        Pokemon active = side.getActivePokemon();
+        if (active.isFainted()) {
+            Action replacement = active.getOwner().chooseSwitch(battle);
+            if (!(replacement instanceof Switch) || replacement.getActSide() != side) {
+                throw new IllegalStateException("A fainted Pokemon must be switched out");
+            }
+            replacement.act();
+            if (side.getActivePokemon().isFainted() || side.getActivePokemon() == active) {
+                throw new IllegalStateException("Switch must select a healthy reserve Pokemon");
+            }
         }
-        else {
-            modifier = (3.0 + modifierPokemon) / 3.0;
-        }
-        int hitNum = Math.min((int)( move.data.accuracy()
-                * modifier), 100);
-        return RANDOM.nextInt(100) < hitNum;
+    }
+
+    public int getTurn() {
+        return turn;
     }
 
     public void endBattle() {

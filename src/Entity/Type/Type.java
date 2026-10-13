@@ -40,7 +40,7 @@ public enum Type {
     }
 
     public double getEffectiveness(Type defType) {
-            return TYPE_CHART[this.ordinal()][defType.ordinal()];
+            return defType == null ? 1.0 : TYPE_CHART[this.ordinal()][defType.ordinal()];
     }
 
     public double getEffectiveness(Type defType1, Type defType2) {

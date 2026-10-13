@@ -6,8 +6,10 @@ import BattleEngine.Action.*;
 import Entity.Move.Move;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class Player {
+    private static final AtomicInteger NEXT_PLAYER_ID = new AtomicInteger();
     private String name;
     private String gender;
     private int age;
@@ -25,13 +27,16 @@ public abstract class Player {
         team = new ArrayList<Pokemon>();
 
         // TODO: Initialize PlayerID Data Field
-        this.playerID = 0;
+        this.playerID = NEXT_PLAYER_ID.incrementAndGet();
     }
 
     public void switchPokemon(int teamIndex) {
-        Pokemon pokemonTemp = activePokemon;
-        activePokemon = team.get(teamIndex);
-        team.add(teamIndex, pokemonTemp);
+        Pokemon replacement = team.get(teamIndex);
+        if (replacement.isFainted() || replacement == activePokemon) {
+            throw new IllegalArgumentException("Choose a healthy reserve Pokemon");
+        }
+        if (activePokemon != null) activePokemon.resetStatStages();
+        activePokemon = replacement;
     }
 
     public void sendPokemon(Pokemon opponent, Field field, Weather weather) {
@@ -45,7 +50,18 @@ public abstract class Player {
     }
     public List<Pokemon> getTeam() {return team;}
 
-    public abstract void addPokemon(Pokemon pokemon);
+    public void addPokemon(Pokemon pokemon) {
+        Objects.requireNonNull(pokemon, "pokemon");
+        if (team.size() >= 6) {
+            throw new IllegalStateException("A team can contain at most six Pokemon");
+        }
+        if (team.contains(pokemon)) {
+            throw new IllegalArgumentException("Pokemon is already in the team");
+        }
+        Pokemon owned = pokemon.getOwner() == this ? pokemon : new Pokemon(pokemon, this);
+        team.add(owned);
+        if (activePokemon == null) activePokemon = owned;
+    }
 
     public void useItem(Item item, Pokemon pokemon) {}
 
@@ -58,6 +74,11 @@ public abstract class Player {
         if (this.playerID == ((Player) o).playerID)
             return true;
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(playerID);
     }
 
     private Side getCurrentSide(Battle battle) {
@@ -75,22 +96,13 @@ public abstract class Player {
         do {
             choiceMove = scanner.nextInt();
             move = activePokemon.getmoveMapNow().get(choiceMove);
-        } while (move == null);
+        } while (move == null || move.getCurrentPP() == 0);
 
         // TODO: Judge the move target type
-        int choiceTarget;
-        Pokemon targetPokemon;
-
-        do {
-            choiceTarget = scanner.nextInt();
-        } while (choiceTarget <= 0
-                || choiceTarget > battle.getOpponentSide().getTeam().size());
-
-        targetPokemon = battle.getOpponentSide()
-                .getTeam()
-                .get(choiceTarget - 1);
-
         Side currentSide = getCurrentSide(battle);
+        Side targetSide = currentSide == battle.getPlayerSide()
+                ? battle.getOpponentSide() : battle.getPlayerSide();
+        Pokemon targetPokemon = targetSide.getActivePokemon();
 
         return new UseMove(
                 currentSide,
@@ -105,7 +117,9 @@ public abstract class Player {
 
         do {
             choiceSwitch = scanner.nextInt();
-        } while (choiceSwitch < 0 || choiceSwitch >= team.size());
+        } while (choiceSwitch < 0 || choiceSwitch >= team.size()
+                || team.get(choiceSwitch).isFainted()
+                || team.get(choiceSwitch) == activePokemon);
 
         Side currentSide = getCurrentSide(battle);
 
@@ -144,23 +158,26 @@ public abstract class Player {
     }
 
     public Action chooseAction(Map<Integer, ActionType> actionMap, Battle battle) {
-        int choice = scanner.nextInt();
+        while (true) {
+            int choice = scanner.nextInt();
+            ActionType actionType = actionMap.get(choice);
+            if (actionType == null) continue;
+            switch (actionType) {
+                case UseMove:
+                    return chooseMove(battle);
 
-        switch (actionMap.get(choice)) {
-            case UseMove:
-                return chooseMove(battle);
+                case Switch:
+                    return chooseSwitch(battle);
 
-            case Switch:
-                return chooseSwitch(battle);
+                case UseItem:
+                    return chooseItem(battle);
 
-            case UseItem:
-                return chooseItem(battle);
+                case Escape:
+                    return chooseEscape(battle);
 
-            case Escape:
-                return chooseEscape(battle);
-
-            default:
-                return chooseAction(actionMap, battle);
+                default:
+                    break;
+            }
         }
     }
 

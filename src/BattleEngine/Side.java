@@ -22,7 +22,7 @@ public class Side {
     }
 
     public Pokemon getActivePokemon() {
-        return activePokemon;
+        return player.getActivePokemon();
     }
 
     public List<Pokemon> getTeam(){
