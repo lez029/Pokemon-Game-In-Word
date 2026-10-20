@@ -6,8 +6,9 @@ import Entity.Ability.Ability;
 import Entity.Move.Move;
 import Data.MoveData;
 import java.util.*;
+import org.junit.jupiter.api.Test;
 
-/** Offline regression checks. Run with java -ea BattleRegressionTest. */
+/** Offline battle regression checks executed by Maven Surefire. */
 public class BattleRegressionTest {
     private static final SpeciesData SPECIES = new SpeciesData(
             1, "Test", null, null, 50, 50, 50, 50, 50, 50, 300,
@@ -64,7 +65,10 @@ public class BattleRegressionTest {
         return pokemon;
     }
 
-    public static void main(String[] args) {
+    @Test
+    void battleRegression() {
+        org.junit.jupiter.api.Assertions.assertTrue(BattleRegressionTest.class.desiredAssertionStatus(),
+                "Java assertions must be enabled for regression checks");
         Trainer player = new Trainer();
         Trainer opponent = new Trainer();
         assert !player.equals(opponent) : "Players need distinct identities";

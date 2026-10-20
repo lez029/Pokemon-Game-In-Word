@@ -7,6 +7,7 @@ import Entity.Ability.Ability;
 import Entity.Move.*;
 import Entity.Type.Type;
 import java.util.*;
+import org.junit.jupiter.api.Test;
 
 public class DamageRegressionTest {
     private static SpeciesData species(Type type) {
@@ -41,7 +42,10 @@ public class DamageRegressionTest {
         };
     }
 
-    public static void main(String[] args) {
+    @Test
+    void damageRegression() {
+        org.junit.jupiter.api.Assertions.assertTrue(DamageRegressionTest.class.desiredAssertionStatus(),
+                "Java assertions must be enabled for regression checks");
         Pokemon actor = new FixedPokemon(Type.NORMAL);
         Pokemon target = new FixedPokemon(Type.WATER);
         Move physical = move(Type.NORMAL, DamageClass.PHYSICAL, null, 20, Target.SELECTED_POKEMON);
